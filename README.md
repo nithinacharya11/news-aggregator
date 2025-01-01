@@ -7,32 +7,32 @@ Steps to Run the Project in Docker
    Clone the repository to your local machine if you haven't already:
 
    ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+   git clone https://github.com/nithinacharya11/news-aggregator
+   cd news-aggregator
    ```
 
 2. Build the Docker Image
    In the root folder of the project, run the following command to build the Docker image:
 
    ```bash
-   docker build -t nextjs-app .
+   docker build -t news-aggregator .
    ```
    This command will:
-   - Create a Docker image tagged as nextjs-app.
-   - Install all dependencies and build the Next.js app.
+   - Create a Docker image tagged as news-aggregator.
+   - Install all dependencies and build the news-aggregator app.
 
 3. Run the Docker Container
    After the image is built successfully, you can run the project inside a Docker container using this command:
 
    ```bash
-   docker run -p 3000:3000 nextjs-app
+   docker run -p 3000:3000 news-aggregator
    ```
    This will:
    - Run the container.
    - Expose port 3000 from the container to your host machine's port 3000.
 
 4. Access the Application
-   Open your browser and go to http://localhost:3000 to access the Next.js application running in Docker.
+   Open your browser and go to http://localhost:3000 to access the news-aggregator application running in Docker.
 
 5. Stop the Docker Container
    To stop the Docker container, press Ctrl + C or run the following command in your terminal to stop all running containers:
