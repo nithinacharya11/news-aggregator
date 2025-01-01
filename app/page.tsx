@@ -31,8 +31,8 @@ export default function Home() {
   useEffect(() => {
     setLoading(true);
     const query = {
-      query: "",
-      category: "",
+      query: searchQuery,
+      category: category,
       from: fromDate,
     };
     axios
@@ -48,7 +48,7 @@ export default function Home() {
         console.error("Error fetching data:", err);
         setLoading(false);
       });
-  }, [fromDate]); // Trigger fetch when fromDate changes
+  }, [category,fromDate]); // Trigger fetch when fromDate changes
 
   const handleSourceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSource(e.target.value);

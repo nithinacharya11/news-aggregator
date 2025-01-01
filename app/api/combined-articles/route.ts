@@ -31,8 +31,6 @@ export async function GET(request: NextRequest) {
       axios.get(nytimesUrl).catch((error) => ({ data: { response: { docs: [] } }, error })),
     ]);
 
-    console.log(nytimesResponse)
-
     // Combine and normalize articles
     let articles: Article[] = [
       ...(newsapiResponse.data.articles || []).map((item: NewsAPIArticle) => ({
