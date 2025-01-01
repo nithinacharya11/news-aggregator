@@ -1,101 +1,234 @@
-import Image from "next/image";
+"use client";
+import NewsCard from "@/components/NewsCard";
+import { Article, NewsResponse } from "@/lib/types";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [visibleArticles, setVisibleArticles] = useState<Article[]>([]);
+  const [source, setSource] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [sourceOptions, setSourceOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearchSubmitted, setIsSearchSubmitted] = useState<boolean>(false);
+  const [fromDate, setFromDate] = useState<string>("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const categoryOptions = [
+    "business",
+    "entertainment",
+    "general",
+    "health",
+    "science",
+    "sports",
+    "technology",
+  ];
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    const query = {
+      query: "",
+      category: "",
+      from: fromDate,
+    };
+    axios
+      .get<NewsResponse>("/api/combined-articles", { params: query })
+      .then((res) => {
+        setArticles(res.data.articles);
+        setVisibleArticles(res.data.articles);
+        const opt = res.data.articles.map((item) => item.source).filter((source) => source !== "[Removed]");
+        setSourceOptions([...new Set(opt)]);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching data:", err);
+        setLoading(false);
+      });
+  }, [fromDate]); // Trigger fetch when fromDate changes
+
+  const handleSourceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSource(e.target.value);
+  };
+
+  const handleCategorySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
+  };
+
+  const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSearchSubmitted(true);
+    setLoading(true);
+
+    const query = {
+      query: searchQuery,
+      category: category,
+      from: fromDate,
+    };
+
+    try {
+      const response = await axios.get<NewsResponse>("/api/combined-articles", {
+        params: query,
+      });
+
+      const articles = response.data.articles || [];
+      setArticles(articles);
+      setVisibleArticles(articles);
+
+      const sources = articles.map((item) => item.source || "Unknown").filter((source) => source !== "[Removed]");
+      setSourceOptions([...new Set(sources)]);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const arr = articles.filter((item) => {
+      const isValidArticle =
+        item.title &&
+        item.description &&
+        item.source &&
+        item.url &&
+        item.source !== "[Removed]" &&
+        item.url !== "https://removed.com";
+
+      return isValidArticle && (source !== "" ? item.source === source : true);
+    });
+
+    setVisibleArticles(arr);
+  }, [source, articles]);
+
+  return (
+    <div className="font-[family-name:var(--font-geist-sans)] w-full min-h-screen bg-gray-100 flex flex-col items-center p-4">
+      <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-8">News</h2>
+
+      <form onSubmit={handleSearchSubmit} className="flex items-center w-[30%] sm:w-[90%]">
+        <div className="relative w-full">
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="border p-2 w-full bg-white text-gray-900 focus:ring-2 focus:ring-green-500 duration-300 focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="submit"
+          className="ml-2 bg-green-500 text-white py-2 px-4 rounded-sm shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Search
+        </button>
+      </form>
+
+      <div className=" my-10 w-[80%] flex sm:flex-col items-center gap-4">
+        <div className="relative w-full">
+          <select
+            name="category"
+            id="category"
+            className="border p-2 w-full cursor-pointer appearance-none pr-10"
+            value={category}
+            onChange={handleCategorySelect}
+          >
+            <option value="" disabled>
+              Select category
+            </option>
+            {categoryOptions.map((item: string, index: number) => (
+              <option value={item} key={index}>
+                {item}
+              </option>
+            ))}
+          </select>
+          {category && (
+            <button
+              className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              onClick={() => setCategory("")}
+              aria-label="Clear selection"
+            >
+              &#x2715;
+            </button>
+          )}
+        </div>
+
+        <div className="relative w-full">
+          <select
+            name="source"
+            id="source"
+            className="border p-2 w-full cursor-pointer appearance-none pr-10"
+            value={source}
+            onChange={handleSourceSelect}
+          >
+            <option value="" disabled>
+              Select source
+            </option>
+            {sourceOptions.map((item: string, index: number) => (
+              <option value={item} key={index}>
+                {item}
+              </option>
+            ))}
+          </select>
+          {source && (
+            <button
+              className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              onClick={() => setSource("")}
+              aria-label="Clear selection"
+            >
+              &#x2715;
+            </button>
+          )}
+        </div>
+
+        <div className="date-picker relative bottom-3 sm:bottom-0 w-full">
+          <label htmlFor="fromDate" className="block text-sm sm:mb-1 font-medium text-gray-700">
+            Select Date
+          </label>
+          <div className="relative">
+            <input
+              id="fromDate"
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="border p-2 w-full pr-8"
+            />
+            {fromDate && (
+              <button
+                type="button"
+                onClick={() => setFromDate("")}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                ✖
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* News Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-8">
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden mx-auto p-4 mb-8 w-[300px]">
+                <div className="relative h-64 bg-gray-300 animate-pulse rounded-lg mb-4"></div>
+                <div className="h-6 bg-gray-300 animate-pulse rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 animate-pulse rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 animate-pulse rounded mb-4 w-5/6"></div>
+                <div className="h-4 bg-gray-300 animate-pulse rounded mb-2 w-3/4"></div>
+                <div className="h-4 bg-gray-300 animate-pulse rounded mb-4 w-1/2"></div>
+              </div>
+            ))
+          : visibleArticles.map((item: Article, index: number) => (
+              <NewsCard key={index} article={item} />
+            ))}
+      </div>
+
+      {!loading && visibleArticles.length === 0 && (
+        <p className="text-center flex justify-center mt-4 text-red-400">No articles found. Please try adjusting your filters or search query.</p>
+      )}
     </div>
   );
 }
