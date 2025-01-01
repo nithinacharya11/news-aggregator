@@ -12,7 +12,6 @@ export default function Home() {
   const [sourceOptions, setSourceOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isSearchSubmitted, setIsSearchSubmitted] = useState<boolean>(false);
   const [fromDate, setFromDate] = useState<string>("");
 
   const categoryOptions = [
@@ -61,7 +60,6 @@ export default function Home() {
 
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSearchSubmitted(true);
     setLoading(true);
 
     const query = {

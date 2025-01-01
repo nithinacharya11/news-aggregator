@@ -1,3 +1,4 @@
+import { Article, GuardianArticle, NewsAPIArticle, NYTimesArticle } from "@/lib/types";
 import axios from "axios";
 import { NextRequest } from "next/server";
 
@@ -33,8 +34,8 @@ export async function GET(request: NextRequest) {
     console.log(nytimesResponse)
 
     // Combine and normalize articles
-    let articles = [
-      ...(newsapiResponse.data.articles || []).map((item: any) => ({
+    let articles: Article[] = [
+      ...(newsapiResponse.data.articles || []).map((item: NewsAPIArticle) => ({
         source: item.source?.name || "Unknown",
         title: item.title || "No title",
         description: item.description || "No description",
@@ -42,7 +43,8 @@ export async function GET(request: NextRequest) {
         urlToImage: item.urlToImage,
         publishedAt: item.publishedAt,
       })),
-      ...(guardianResponse.data.response?.results || []).map((item: any) => ({
+    
+      ...(guardianResponse.data.response?.results || []).map((item: GuardianArticle) => ({
         source: "The Guardian",
         title: item.webTitle || "No title",
         description: item.webTitle || "No description",
@@ -50,7 +52,8 @@ export async function GET(request: NextRequest) {
         urlToImage: null,
         publishedAt: item.webPublicationDate,
       })),
-      ...(nytimesResponse.data.response?.docs || []).map((item: any) => ({
+    
+      ...(nytimesResponse.data.response?.docs || []).map((item: NYTimesArticle) => ({
         source: item.source || "The New York Times",
         title: item.headline?.main || "No title",
         description: item.abstract || "No description",
@@ -61,6 +64,8 @@ export async function GET(request: NextRequest) {
         publishedAt: item.pub_date,
       })),
     ];
+    
+
 
     // Filter articles by the selected date
     if (fromDate) {

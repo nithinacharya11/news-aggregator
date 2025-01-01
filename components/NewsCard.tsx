@@ -1,6 +1,5 @@
 import { Article } from "@/lib/types";
 import React from "react";
-import Image from "next/image";
 
 const NewsCard = ({ article }: { article: Article }) => {
   const { title, description, urlToImage, url, publishedAt, source } = article;
