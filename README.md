@@ -7,7 +7,7 @@ Steps to Run the Project in Docker
    Clone the repository to your local machine if you haven't already:
 
    ```bash
-   git clone https://github.com/nithinacharya11/news-aggregator
+   git clone https://github.com/nithinacharya11/news-aggregator.git
    cd news-aggregator
    ```
 
@@ -18,7 +18,7 @@ Steps to Run the Project in Docker
    docker build -t news-aggregator .
    ```
    This command will:
-   - Create a Docker image tagged as news-aggregator.git
+   - Create a Docker image tagged as news-aggregator
    - Install all dependencies and build the news-aggregator app.
 
 3. Run the Docker Container
