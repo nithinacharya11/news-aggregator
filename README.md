@@ -18,7 +18,7 @@ Steps to Run the Project in Docker
    docker build -t news-aggregator .
    ```
    This command will:
-   - Create a Docker image tagged as news-aggregator.
+   - Create a Docker image tagged as news-aggregator.git
    - Install all dependencies and build the news-aggregator app.
 
 3. Run the Docker Container
